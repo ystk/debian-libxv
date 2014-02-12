@@ -2,10 +2,10 @@ Source: libxv
 Section: x11
 Priority: optional
 Maintainer: Debian X Strike Force <debian-x@lists.debian.org>
-Uploaders: David Nusinow <dnusinow@debian.org>, Andres Salomon <dilinger@debian.org>, Julien Cristau <jcristau@debian.org>
+Uploaders: Cyril Brulebois <kibi@debian.org>
 Standards-Version: 3.8.3
 Build-Depends:
- debhelper (>= 5.0.0),
+ debhelper (>= 8.1.3),
  libx11-dev (>= 1:0.99.2),
  libxext-dev (>= 1:0.99.1),
  x11proto-video-dev,
@@ -13,14 +13,19 @@ Build-Depends:
  quilt,
  automake,
  libtool,
- xutils-dev (>= 1:7.5~1)
+ xutils-dev (>= 1:7.5+4),
 Vcs-Git: git://git.debian.org/git/pkg-xorg/lib/libxv
 Vcs-Browser: http://git.debian.org/?p=pkg-xorg/lib/libxv.git
 
 Package: libxv1
 Section: libs
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Multi-Arch: same
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+Pre-Depends:
+ ${misc:Pre-Depends}
 Description: X11 Video extension library
  libXv provides an X Window System client interface to the XVideo
  extension to the X protocol.
@@ -31,8 +36,6 @@ Description: X11 Video extension library
  .
  More information about X.Org can be found at:
  <URL:http://www.X.org>
- <URL:http://xorg.freedesktop.org>
- <URL:http://lists.freedesktop.org/mailman/listinfo/xorg>
  .
  This module can be found at
  git://anongit.freedesktop.org/git/xorg/lib/libXv
@@ -40,8 +43,12 @@ Description: X11 Video extension library
 Package: libxv1-dbg
 Section: debug
 Architecture: any
+Multi-Arch: same
 Priority: extra
-Depends: ${shlibs:Depends}, ${misc:Depends}, libxv1 (= ${binary:Version})
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ libxv1 (= ${binary:Version}),
 Description: X11 Video extension library (debug package)
  libXv provides an X Window System client interface to the XVideo
  extension to the X protocol.
@@ -55,8 +62,6 @@ Description: X11 Video extension library (debug package)
  .
  More information about X.Org can be found at:
  <URL:http://www.X.org>
- <URL:http://xorg.freedesktop.org>
- <URL:http://lists.freedesktop.org/mailman/listinfo/xorg>
  .
  This module can be found at
  git://anongit.freedesktop.org/git/xorg/lib/libXv
@@ -64,7 +69,14 @@ Description: X11 Video extension library (debug package)
 Package: libxv-dev
 Section: libdevel
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libxv1 (= ${binary:Version}), libx11-dev, libxext-dev, x11proto-video-dev
+Multi-Arch: same
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ libxv1 (= ${binary:Version}),
+ libx11-dev,
+ libxext-dev,
+ x11proto-video-dev,
 Conflicts: x11proto-video-dev (<< 2.2+cvs.20050712-1)
 Replaces: x11proto-video-dev (<< 2.2+cvs.20050712-1)
 Description: X11 Video extension library (development headers)
@@ -80,8 +92,6 @@ Description: X11 Video extension library (development headers)
  .
  More information about X.Org can be found at:
  <URL:http://www.X.org>
- <URL:http://xorg.freedesktop.org>
- <URL:http://lists.freedesktop.org/mailman/listinfo/xorg>
  .
  This module can be found at
  git://anongit.freedesktop.org/git/xorg/lib/libXv
