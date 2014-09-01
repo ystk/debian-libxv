@@ -1,3 +1,20 @@
+libxv (2:1.0.10-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Remove Cyril Brulebois from Uploaders.
+
+ -- Julien Cristau <jcristau@debian.org>  Mon, 20 Jan 2014 15:06:16 +0100
+
+libxv (2:1.0.9-1) unstable; urgency=low
+
+  * New upstream release.
+  * Bump debhelper compat level to 7.
+  * Disable silent build rules.
+  * Use dpkg-buildflags.
+  * Use dh_prep instead of dh_clean -k.
+
+ -- Julien Cristau <jcristau@debian.org>  Mon, 12 Aug 2013 22:00:25 +0200
+
 libxv (2:1.0.7-1+deb7u1) wheezy-security; urgency=high
 
   * integer overflows calculating memory needs for replies [CVE-2013-1989]
