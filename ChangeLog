@@ -1,3 +1,327 @@
+commit 736d7ac5a94c7aa6761d50ab58339a3d9a116c51
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Sep 7 22:19:48 2013 -0700
+
+    libXv 1.0.10
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 4a7d2ca2438649e61b7dcb9491391ff6fbd482ac
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Jul 5 21:19:29 2013 -0700
+
+    Remove fallback for _XEatDataWords, require libX11 1.6 for it
+    
+    _XEatDataWords was orignally introduced with the May 2013 security
+    patches, and in order to ease the process of delivering those,
+    fallback versions of _XEatDataWords were included in the X extension
+    library patches so they could be applied to older versions that didn't
+    have libX11 1.6 yet.   Now that we're past that hurdle, we can drop
+    the fallbacks and just require libX11 1.6 for building new versions
+    of the extension libraries.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 06d275959b5dd78c319d5200ca6d986934b18920
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Jun 22 23:43:58 2013 -0700
+
+    Refactor error handling
+    
+    Reduce code duplication, make error checking & cleanup more consistent
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 29b23d387e32d09e1b34682f01cee899a08a1176
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Jun 22 21:47:34 2013 -0700
+
+    Add missing calls to _XEatDataWords when we are skipping _XRead
+    
+    If we failed to allocate the buffer to _XRead into, discard the
+    rest of the reply, instead of leaving it to confuse the reading
+    of the next reply.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 5a09a55b5b13280990465d83205e796bb8cd68ac
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Jun 22 21:04:06 2013 -0700
+
+    Replace custom copy of GetReq macro with call to Xlib 1.5's _XGetRequest
+    
+    xvproto.h names don't match those required by the Xlibint.h GetReq* macros,
+    but at least we can rely on the _XGetRequest function for the bulk of the
+    work now, instead of duplicating it.
+    
+    Also clears clang warnings repeated for every request function:
+    
+    Xv.c:137:5: warning: cast from 'char *' to 'xvQueryExtensionReq *' increases re
+    quired alignment from 1 to 2 [-Wcast-align]
+        XvGetReq(QueryExtension, req);
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ./Xvlibint.h:52:8: note: expanded from macro 'XvGetReq'
+            req = (xv##name##Req *)(dpy->last_req = dpy->bufptr);\
+                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Xv.c:137:5: warning: implicit conversion loses integer precision: 'int' to 'CAR
+    D8' (aka 'unsigned char') [-Wconversion]
+        XvGetReq(QueryExtension, req);
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ./Xvlibint.h:53:30: note: expanded from macro 'XvGetReq'
+            req->reqType = info->codes->major_opcode;\
+                         ~ ~~~~~~~~~~~~~^~~~~~~~~~~~
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit ef2722e10b275d13d754d2b92e67f72b0716d070
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Jun 22 20:33:13 2013 -0700
+
+    Require ANSI C89 pre-processor, drop pre-C89 token pasting support
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Mark Kettenis <kettenis@openbsd.org>
+
+commit e73a2199f039e9ae772efb6be8d1db68eb346fa4
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Jun 22 13:35:12 2013 -0700
+
+    Use pad_to_int32 macro instead of repeated (x + 3) & ~3 pattern
+    
+    Makes code clearer, and using ~3U instead of ~3 clears some signed int
+    warnings.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 4ced44196d6636006c9724a373c0d2ca0c12dc1e
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Jun 22 11:20:13 2013 -0700
+
+    Fix sign conversion & comparison warnings from clang
+    
+    Clears up:
+    Xv.c:196:21: warning: implicit conversion changes signedness: 'CARD32' (aka 'unsigned int') to 'int' [-Wsign-conversion]
+      size = rep.length << 2;
+           ~ ~~~~~~~~~~~^~~~
+    Xv.c:212:41: warning: implicit conversion changes signedness: 'int' to 'size_t' (aka 'unsigned long') [-Wsign-conversion]
+          if ((pas=(XvAdaptorInfo *)Xmalloc(size))==NULL) {
+                                    ~~~~~~~~^~~~~
+    Xv.c:236:43: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+          pa->num_adaptors = rep.num_adaptors - ii;
+                           ~ ~~~~~~~~~~~~~~~~~^~~~
+    Xv.c:243:40: warning: implicit conversion changes signedness: 'int' to 'size_t' (aka 'unsigned long') [-Wsign-conversion]
+          if ( (name = (char *)Xmalloc(size+1)) == NULL)
+                               ~~~~~~~~~~~~^~~
+    Xv.c:251:37: warning: implicit conversion changes signedness: 'int' to 'size_t' (aka 'unsigned long') [-Wsign-conversion]
+          (void)strncpy(name, u.string, size);
+                ~~~~~~~                 ^~~~
+    Xv.c:260:36: warning: implicit conversion changes signedness: 'int' to 'size_t' (aka 'unsigned long') [-Wsign-conversion]
+          if ((pfs=(XvFormat *)Xmalloc(size))==NULL) {
+                               ~~~~~~~~^~~~~
+    Xv.c:269:20: warning: comparison of integers of different signs: 'int' and 'unsigned long' [-Wsign-compare]
+          for (jj=0; jj<pa->num_formats; jj++) {
+                     ~~^~~~~~~~~~~~~~~~
+    Xv.c:259:29: warning: implicit conversion loses integer precision: 'unsigned long' to 'int' [-Wshorten-64-to-32]
+          size = pa->num_formats*sizeof(XvFormat);
+               ~ ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~
+    Xv.c:305:16: warning: comparison of integers of different signs: 'int' and 'unsigned long' [-Wsign-compare]
+      for (ii=0; ii<pAdaptors->num_adaptors; ii++, pa++)
+                 ~~^~~~~~~~~~~~~~~~~~~~~~~~
+    Xv.c:356:21: warning: implicit conversion changes signedness: 'CARD32' (aka 'unsigned int') to 'int' [-Wsign-conversion]
+      size = rep.length << 2;
+           ~ ~~~~~~~~~~~^~~~
+    Xv.c:369:41: warning: implicit conversion changes signedness: 'int' to 'size_t' (aka 'unsigned long') [-Wsign-conversion]
+      if ( (pes = (XvEncodingInfo *)Xmalloc(size)) == NULL) {
+                                    ~~~~~~~~^~~~~
+    Xv.c:392:45: warning: implicit conversion changes signedness: 'int' to 'unsigned long' [-Wsign-conversion]
+          pe->num_encodings = rep.num_encodings - jj;
+                            ~ ~~~~~~~~~~~~~~~~~~^~~~
+    Xv.c:397:40: warning: implicit conversion changes signedness: 'int' to 'size_t' (aka 'unsigned long') [-Wsign-conversion]
+          if ( (name = (char *)Xmalloc(size+1)) == NULL) {
+                               ~~~~~~~~~~~~^~~
+    Xv.c:404:31: warning: implicit conversion changes signedness: 'int' to 'size_t' (aka 'unsigned long') [-Wsign-conversion]
+          strncpy(name, u.string, size);
+          ~~~~~~~                 ^~~~
+    Xv.c:433:16: warning: comparison of integers of different signs: 'int' and 'unsigned long' [-Wsign-compare]
+      for (ii=0; ii<pEncodings->num_encodings; ii++, pe++) {
+                 ~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+    Xv.c:886:27: warning: comparison of integers of different signs: 'int' and 'CAR
+    D32' (aka 'unsigned int') [-Wsign-compare]
+                for (i = 0; i < rep.num_attributes; i++) {
+                            ~ ^ ~~~~~~~~~~~~~~~~~~
+    Xv.c:946:27: warning: comparison of integers of different signs: 'int' and 'CAR
+    D32' (aka 'unsigned int') [-Wsign-compare]
+                for (i = 0; i < rep.num_formats; i++) {
+                            ~ ^ ~~~~~~~~~~~~~~~
+    Xv.c:1100:5: warning: comparison of integers of different signs: 'int' and 'unsigned int' [-Wsign-compare]
+        SetReqLen(req, len, len);
+        ^~~~~~~~~~~~~~~~~~~~~~~~
+    X11/Xlibint.h:530:27: note: expanded from macro 'SetReqLen'
+        if ((req->length + n) > (unsigned)65535) { \
+                              ^ ~~~~~~~~~~~~~~~
+    Xv.c:1100:20: warning: implicit conversion changes signedness: 'int' to 'unsigned int' [-Wsign-conversion]
+        SetReqLen(req, len, len);
+        ~~~~~~~~~~~~~~~^~~~~~~~~
+    X11/Xlibint.h:532:21: note: expanded from macro 'SetReqLen'
+                MakeBigReq(req,n) \
+                               ^
+    X11/Xlibint.h:505:35: note: expanded from macro 'MakeBigReq'
+        ((CARD32 *)req)[1] = _BRlen + n + 2; \
+                                    ~ ^
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 89dc3ff457644271b1c633efa9682ae45e55d9d8
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Jun 22 11:07:13 2013 -0700
+
+    Remove unnecessary casts from Xmalloc calls
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Mark Kettenis <kettenis@openbsd.org>
+
+commit 54851e0e72e2017c14c504459078c97d6112696b
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Jun 22 19:58:20 2013 -0700
+
+    Adopt X.Org standard code style, with consistent indentation
+    
+    Having differing indent levels of 2, 3, & 4 spaces hurts my eyes.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit d58f74ebfd0c56ffeb8e288c65592228af197a2e
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Jun 22 19:06:09 2013 -0700
+
+    libXv 1.0.9
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 22cc0c897a28a41d49fe68277bb3c002f54bbb48
+Author: Daphne Pfister <daphnediane@mac.com>
+Date:   Sat Jun 1 22:27:23 2013 -0400
+
+    Bug 65252: Ensure final name is nil-terminated & none point to uninitialized memory.
+    
+    This patch attempts to fix this bug by ensuring that there is at least one
+    nil byte at the end of all the name strings. This should prevent reading
+    past the end of the allocation as well as exposing uninitialized memory.
+    
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit edfb6fc397686c1892603d0f86a9aadf14dbc12e
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Jun 1 17:26:11 2013 -0700
+
+    XvQueryPortAttributes: add a comment explaining memory strategy
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 179ed259e75a62e74532e36f52f3838deb2aac92
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri May 31 17:49:24 2013 -0700
+
+    libXv 1.0.8
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 50fc4cb18069cb9450a02c13f80223ef23511409
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Apr 13 00:03:03 2013 -0700
+
+    integer overflow in XvCreateImage() [CVE-2013-1989 3/3]
+    
+    num_planes is a CARD32 and needs to be bounds checked before bit shifting
+    and adding to sizeof(XvImage) to come up with the total size to allocate,
+    to avoid integer overflow leading to underallocation and writing data from
+    the network past the end of the allocated buffer.
+    
+    Reported-by: Ilja Van Sprundel <ivansprundel@ioactive.com>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 59301c1b5095f7dc6359d5b396dbbcdee7038270
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Apr 13 00:03:03 2013 -0700
+
+    integer overflow in XvListImageFormats() [CVE-2013-1989 2/3]
+    
+    num_formats is a CARD32 and needs to be bounds checked before multiplying
+    by sizeof(XvImageFormatValues) to come up with the total size to allocate,
+    to avoid integer overflow leading to underallocation and writing data from
+    the network past the end of the allocated buffer.
+    
+    Reported-by: Ilja Van Sprundel <ivansprundel@ioactive.com>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 15ab7dec17d686c38f2c82ac23a17cac5622322a
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Apr 13 00:16:14 2013 -0700
+
+    buffer overflow in XvQueryPortAttributes() [CVE-2013-2066]
+    
+    Each attribute returned in the reply includes the number of bytes
+    to read for its marker.  We had been always trusting it, and never
+    validating that it wouldn't cause us to write past the end of the
+    buffer we allocated based on the reported text_size.
+    
+    Reported-by: Ilja Van Sprundel <ivansprundel@ioactive.com>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 6e1b743a276651195be3cd68dff41e38426bf3ab
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Apr 13 00:03:03 2013 -0700
+
+    integer overflow in XvQueryPortAttributes() [CVE-2013-1989 1/3]
+    
+    The num_attributes & text_size members of the reply are both CARD32s
+    and need to be bounds checked before multiplying & adding them together
+    to come up with the total size to allocate, to avoid integer overflow
+    leading to underallocation and writing data from the network past the
+    end of the allocated buffer.
+    
+    Reported-by: Ilja Van Sprundel <ivansprundel@ioactive.com>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 79362c764a6df7e7fbe5247756bdbf60f3a58baf
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Apr 13 00:28:34 2013 -0700
+
+    Use _XEatDataWords to avoid overflow of rep.length shifting
+    
+    rep.length is a CARD32, so rep.length << 2 could overflow in 32-bit builds
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit ed13edeac5adc2e6afcd87f63b5ae1ff9ad47958
+Author: Colin Walters <walters@verbum.org>
+Date:   Wed Jan 4 17:37:06 2012 -0500
+
+    autogen.sh: Implement GNOME Build API
+    
+    http://people.gnome.org/~walters/docs/build-api.txt
+    
+    Signed-off-by: Adam Jackson <ajax@redhat.com>
+
+commit 1006d44b8674b5d9c5d7e893878776fbd34dbed2
+Author: Adam Jackson <ajax@redhat.com>
+Date:   Tue Jan 15 14:28:48 2013 -0500
+
+    configure: Remove AM_MAINTAINER_MODE
+    
+    Signed-off-by: Adam Jackson <ajax@redhat.com>
+
+commit ddec3b412e1d857d1a2daa75df61de377e1de9bd
+Author: Thomas Klausner <wiz@NetBSD.org>
+Date:   Tue Jul 17 21:56:28 2012 +0200
+
+    Uppercase SH arguments.
+    
+    Signed-off-by: Thomas Klausner <wiz@NetBSD.org>
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
 commit 0f4fa1820041394e879517abb49c0391ecc796f7
 Author: Alan Coopersmith <alan.coopersmith@oracle.com>
 Date:   Wed Mar 7 21:25:38 2012 -0800
