@@ -1,3 +1,9 @@
+libxv (2:1.0.10-1+deb8u1) jessie; urgency=high
+
+  * Protocol handling issues in libXv (CVE-2016-5407)
+
+ -- Julien Cristau <jcristau@debian.org>  Sat, 07 Jan 2017 16:38:45 +0100
+
 libxv (2:1.0.10-1) unstable; urgency=medium
 
   * New upstream release.
